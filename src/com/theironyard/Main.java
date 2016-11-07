@@ -25,7 +25,7 @@ public class Main {
         if(row > 0) {
             neighbors.add(rooms[row-1][col]);
         }
-        if(col > SIZE-1) {
+        if(col < SIZE-1) {
             neighbors.add(rooms[row][col+1]);
         }
         if(col > 0) {
@@ -42,15 +42,40 @@ public class Main {
         if(neighbors.size() == 0){
             return null;
         }
-        Random r = new Random();if(col > 0) {
-            neighbors.add(rooms[row][col+1]);
-        }
+        Random r = new Random();
         int index = r.nextInt(neighbors.size());
         return neighbors.get(index);
     }
 
+    static void tearDownWall(Room oldRoom, Room newRoom) {
+        if(oldRoom.row < newRoom.row) {
+            oldRoom.hasBottom = false;
+        }
+        else if(oldRoom.row > newRoom.row) {
+            newRoom.hasBottom = false;
+        }
+        else if(oldRoom.col < newRoom.col) {
+            oldRoom.hasRight = false;
+        }
+        else if(oldRoom.col > newRoom.col) {
+            newRoom.hasRight = false;
+        }
+    }
+
+    static boolean createMaze(Room[][] rooms, Room room) {
+        room.wasVisted = true;
+        Room nextRoom = randomNeighbor(rooms, room.row, room.col);
+        if(nextRoom == null){
+            return false;
+        }
+        tearDownWall(room, nextRoom);
+        while(createMaze(rooms, nextRoom));
+        return true;
+    }
+
     public static void main(String[] args) {
 	    Room[][] rooms = createRooms();
+        createMaze(rooms, rooms[0][0]);
         for(Room[] rows : rooms){
             System.out.print(" _");
         }
@@ -58,7 +83,18 @@ public class Main {
         for(Room[] row : rooms) {
             System.out.print("|");
             for(Room room : row) {
-                System.out.print("_|");
+                if(room.hasBottom){
+                    System.out.print("_");
+                }
+                else{
+                    System.out.print(" ");
+                }
+                if(room.hasRight){
+                    System.out.print("|");
+                }
+                else{
+                    System.out.print(" ");
+                }
             }
             System.out.println();
         }
